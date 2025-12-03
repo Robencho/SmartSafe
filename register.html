@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Paciente - SmartSafe</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<header>
+    <div class="logo">SmartSafe</div>
+    <div class="menu" onclick="window.history.back()">← Volver</div>
+</header>
+
+<div class="container card">
+
+    <h2>Registrar Paciente</h2>
+
+    <div class="form-group">
+        <label>Nombre completo</label>
+        <input id="p_name" placeholder="Ej: Juan Pérez">
+    </div>
+
+    <div class="form-group">
+        <label>Identificación</label>
+        <input id="p_id" placeholder="Número de documento">
+    </div>
+
+    <div class="form-group">
+        <label>Teléfono</label>
+        <input id="p_phone" placeholder="Teléfono o celular">
+    </div>
+
+    <div class="form-group">
+        <label>Fecha de nacimiento</label>
+        <input id="p_birth" type="date">
+    </div>
+
+    <div class="form-group">
+        <label>Contacto de emergencia</label>
+        <input id="p_emergency" placeholder="Nombre y teléfono">
+    </div>
+
+    <div class="form-group">
+        <label>EPS</label>
+        <input id="p_eps" placeholder="Ej: Sanitas">
+    </div>
+
+    <div class="form-group">
+        <label>Tipo de sangre</label>
+        <input id="p_blood" placeholder="Ej: O+">
+    </div>
+
+    <div class="form-group">
+        <label>Alergias</label>
+        <textarea id="p_allergies" placeholder="Especifica si tienes alguna alergia"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>Foto</label>
+        <input id="p_photo" type="file" accept="image/*">
+    </div>
+
+    <hr>
+
+    <h3>Datos de acceso</h3>
+
+    <div class="form-group">
+        <label>Usuario</label>
+        <input id="p_user" placeholder="Nombre de usuario">
+    </div>
+
+    <div class="form-group">
+        <label>Contraseña</label>
+        <input id="p_pass" type="password" placeholder="Contraseña">
+    </div>
+
+    <button onclick="crearPaciente()">Crear Paciente</button>
+</div>
+
+<script>
+/**
+ * register.html - soporte de CREAR y EDITAR paciente
+ * Funcionalidades:
+ * - Si la URL contiene ?id=xxxx -> modo EDITAR (carga datos y guarda cambios)
+ * - Si no -> modo CREAR (comportamiento original)
+ */
+
+// Helpers: usa funciones existentes si las tienes (getUsers/saveUsers), si no las define aquí
+function _getUsers() {
+    if (typeof getUsers === "function") return getUsers();
+    return JSON.parse(localStorage.getItem("ss_users") || "[]");
+}
+function _saveUsers(arr) {
+    if (typeof saveUsers === "function") { saveUsers(arr); return; }
+    localStorage.setItem("ss_users", JSON.stringify(arr));
+}
+
+function qs(id) { return document.getElementById(id); }
+
+// Leer params y preparar la página
+const params = new URLSearchParams(window.location.search);
+const editId = params.get("id"); // si existe: editar
+let editMode = Boolean(editId);
+let currentUserObj = null;
+
+window.addEventListener("DOMContentLoaded", () => {
+    if (editMode) {
+        qs("title")?.innerText && (qs("title").innerText = "Editar Paciente");
+        loadForEdit(editId);
+        // Cambiar texto del botón
+        const btn = document.querySelector("button[onclick='crearPaciente()']");
+        if (btn) {
+            btn.innerText = "Guardar cambios";
+            btn.onclick = saveEdits;
+        }
+    } else {
+        // botón ya está en modo crear; aseguramos que llame a crearPaciente
+        const btn = document.querySelector("button[onclick='crearPaciente()']");
+        if (btn) btn.onclick = crearPaciente;
+    }
+});
+
+/** Carga los datos del usuario y los pone en el formulario */
+function loadForEdit(id) {
+    const users = _getUsers();
+    const user = users.find(u => String(u.id) === String(id));
+    if (!user) {
+        alert("Usuario no encontrado para editar.");
+        window.location.href = "users.html";
+        return;
+    }
+    currentUserObj = user;
+
+    // Poblar campos (usa los ids de tu formulario)
+    qs("p_name").value = user.nombre || "";
+    qs("p_id").value = user.identificacion || "";
+    qs("p_phone").value = user.telefono || "";
+    qs("p_birth").value = user.fecha || "";
+    qs("p_emergency").value = user.contactoEmerg || "";
+    qs("p_eps").value = user.eps || "";
+    qs("p_blood").value = user.sangre || "";
+    qs("p_allergies").value = user.alergias || "";
+    // login
+    qs("p_user").value = user.user || "";
+    qs("p_pass").value = user.pass || "";
+
+    // mostrar preview de la foto si existe
+    const photoEl = qs("p_photo_preview");
+    if (!photoEl) {
+        // crear preview si no existe
+        const img = document.createElement("img");
+        img.id = "p_photo_preview";
+        img.style.width = "96px";
+        img.style.height = "96px";
+        img.style.objectFit = "cover";
+        img.style.borderRadius = "8px";
+        img.style.marginTop = "8px";
+        const fileInput = qs("p_photo");
+        fileInput.parentNode.appendChild(img);
+        img.src = user.foto || "assets/default-avatar.png";
+    } else {
+        photoEl.src = user.foto || "assets/default-avatar.png";
+    }
+}
+
+/** Guardar cambios en un usuario existente */
+function saveEdits(e) {
+    e && e.preventDefault && e.preventDefault();
+
+    if (!currentUserObj) {
+        alert("No se encontró el usuario a editar.");
+        return;
+    }
+
+    // tomar valores del formulario
+    const nombre = qs("p_name").value.trim();
+    const identificacion = qs("p_id").value.trim();
+    const telefono = qs("p_phone").value.trim();
+    const fecha = qs("p_birth").value;
+    const contactoEmerg = qs("p_emergency").value.trim();
+    const eps = qs("p_eps").value.trim();
+    const sangre = qs("p_blood").value.trim();
+    const alergias = qs("p_allergies").value.trim();
+    const username = qs("p_user").value.trim();
+    const pass = qs("p_pass").value.trim();
+
+    if (!nombre || !identificacion || !username) {
+        alert("Completa los campos obligatorios (nombre, identificación, usuario).");
+        return;
+    }
+
+    const photoInput = qs("p_photo");
+    if (photoInput && photoInput.files && photoInput.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+            const fotoBase64 = ev.target.result;
+            _applyUserUpdate(fotoBase64);
+        };
+        reader.readAsDataURL(photoInput.files[0]);
+    } else {
+        // conservar foto existente
+        _applyUserUpdate(currentUserObj.foto || "assets/default-avatar.png");
+    }
+
+    function _applyUserUpdate(foto) {
+        let users = _getUsers();
+
+        // comprobar si username ya pertenece a otro usuario (evitar duplicados)
+        const conflict = users.find(u => u.user === username && String(u.id) !== String(currentUserObj.id));
+        if (conflict) {
+            alert("El nombre de usuario ya está en uso por otra cuenta.");
+            return;
+        }
+
+        // actualizar campos
+        users = users.map(u => {
+            if (String(u.id) === String(currentUserObj.id)) {
+                return {
+                    ...u,
+                    nombre,
+                    identificacion,
+                    telefono,
+                    fecha,
+                    contactoEmerg,
+                    eps,
+                    sangre,
+                    alergias,
+                    foto,
+                    user: username,
+                    pass: pass || u.pass // si deja vacía la pass, conserva la anterior
+                };
+            }
+            return u;
+        });
+
+        _saveUsers(users);
+        alert("Paciente actualizado correctamente.");
+        window.location.href = "users.html";
+    }
+}
+
+/** FUNCION CREAR (original) con ligeros ajustes para compatibilidad */
+function crearPaciente(e) {
+    e && e.preventDefault && e.preventDefault();
+
+    const name = qs("p_name").value.trim();
+    const ident = qs("p_id").value.trim();
+    const phone = qs("p_phone").value.trim();
+    const birth = qs("p_birth").value;
+    const emergency = qs("p_emergency").value.trim();
+    const eps = qs("p_eps").value.trim();
+    const blood = qs("p_blood").value.trim();
+    const allergies = qs("p_allergies").value.trim();
+    const username = qs("p_user").value.trim();
+    const pass = qs("p_pass").value.trim();
+    const photoFile = qs("p_photo").files[0];
+
+    if (!name || !ident || !username || !pass) {
+        alert("Por favor completa los campos obligatorios.");
+        return;
+    }
+
+    const users = _getUsers();
+    if (users.some(u => u.user === username)) {
+        alert("Ese nombre de usuario ya existe.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        const fotoBase64 = reader.result || "assets/default-avatar.png";
+
+        const newPatient = {
+            id: Date.now(),
+            type: "patient",
+            role: "user",
+            nombre: name,
+            identificacion: ident,
+            telefono: phone,
+            fecha: birth,
+            contactoEmerg: emergency,
+            eps: eps,
+            sangre: blood,
+            alergias: allergies,
+            foto: fotoBase64,
+            user: username,
+            pass: pass
+        };
+
+        users.push(newPatient);
+        _saveUsers(users);
+
+        alert("Paciente registrado correctamente.");
+        window.location.href = "home.html";
+    };
+
+    if (photoFile) reader.readAsDataURL(photoFile);
+    else reader.onloadend();
+}
+</script>
+
+
+</body>
+</html>

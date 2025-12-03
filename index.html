@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inicio - SaludSoft</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<header>
+    <h1 class="logo">SmartSafe</h1>
+</header>
+
+<main class="container">
+
+    <section class="login-card">
+        <h2>Iniciar Sesión</h2>
+
+        <form id="loginForm">
+            <label>Usuario:</label>
+            <input type="text" id="loginUser" required>
+
+            <label>Contraseña:</label>
+            <input type="password" id="loginPassword" required>
+
+            <button type="submit" class="btn-primary">Ingresar</button>
+        </form>
+
+        <p class="small-text">¿No tienes cuenta?</p>
+
+      <div class="register-options">
+
+    <div class="reg-card" onclick="openPatientRegister()">
+        <div class="reg-icon">🧑‍🦽</div>
+        <h3>Registrar Paciente</h3>
+        <p>Crear un nuevo historial clínico para un paciente.</p>
+    </div>
+
+    <div class="reg-card" onclick="openDoctorRegister()">
+        <div class="reg-icon">🩺</div>
+        <h3>Registrar Médico</h3>
+        <p>Agregar un profesional de la salud al sistema.</p>
+    </div>
+
+</div>
+
+    </section>
+
+</main>
+
+<script src="js/auth.js"></script>
+
+</body>
+</html>

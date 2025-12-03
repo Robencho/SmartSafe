@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSafe - Home</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header>
+    <div class="logo" onclick="goHome()">SmartSafe</div>
+    <div class="menu" onclick="logout()">⎋</div>
+</header>
+
+<div class="container">
+    <h2 id="welcome"></h2>
+
+    <!-- Perfil propio -->
+    <button onclick="window.location.href='profile.html?me=true'">
+        Ver mi perfil
+    </button>
+
+    <br><br>
+
+    <!-- Opciones solo para médicos -->
+    <div id="medicOptions" style="display:none">
+
+        <button onclick="window.location.href='register.html'">
+            Registrar paciente
+        </button>
+        <br><br>
+
+        <button onclick="window.location.href='register-account.html'">
+            Registrar médico
+        </button>
+        <br><br>
+
+        <button onclick="window.location.href='users.html'">
+            Ver pacientes registrados
+        </button>
+    </div>
+</div>
+
+<script>
+    function logout() {
+        localStorage.removeItem("ss_user");
+        localStorage.removeItem("ss_role");
+        window.location.href = "index.html";
+    }
+
+    function goHome() {
+        window.location.href = "home.html";
+    }
+
+    // ============================
+    // INICIALIZAR HOME
+    // ============================
+
+    const role = localStorage.getItem("ss_role");
+    const user = JSON.parse(localStorage.getItem("ss_user") || "{}");
+
+    if (!role || !user) {
+        window.location.href = "index.html";
+    }
+
+    // Mensaje de bienvenida
+    if (role === "medic") {
+        document.getElementById("welcome").innerText =
+            "Bienvenido doctor " + (user.nombre || user.name || "");
+        document.getElementById("medicOptions").style.display = "block";
+    } else {
+        document.getElementById("welcome").innerText =
+            "Bienvenido " + (user.nombre || "");
+    }
+</script>
+
+</body>
+</html>

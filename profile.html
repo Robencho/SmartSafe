@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - SmartSafe</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- ICONOS -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+</head>
+
+<body>
+
+<header>
+    <div class="logo" onclick="window.location.href='home.html'">SmartSafe</div>
+    <div class="menu" onclick="logout()">⎋</div>
+</header>
+
+<div class="container">
+
+    <h2 id="title">Perfil</h2>
+
+    <div class="profile-card-upgraded">
+
+        <div class="profile-header">
+            <img id="p_foto" class="profile-photo">
+            <div class="profile-name" id="p_nombre"></div>
+            <div class="profile-role" id="p_role"></div>
+            <div id="p_especialidad" class="profile-role" style="display:none"></div>
+        </div>
+
+        <!-- Información general -->
+        <div class="profile-section">
+            <div class="section-title">📌 Información general</div>
+
+            <div class="info-row"><span class="label">Identificación:</span> <span id="p_identificacion"></span></div>
+            <div class="info-row"><span class="label">Fecha de nacimiento:</span> <span id="p_fecha"></span></div>
+            <div class="info-row"><span class="label">Teléfono:</span> <span id="p_telefono"></span></div>
+            <div class="info-row"><span class="label">Contacto emergencia:</span> <span id="p_contactoEmerg"></span></div>
+        </div>
+
+        <!-- Datos médicos del paciente -->
+        <div class="profile-section" id="section-medical">
+            <div class="section-title">🩺 Datos médicos</div>
+
+            <div class="info-row"><span class="label">EPS:</span> <span id="p_eps"></span></div>
+            <div class="info-row"><span class="label">Grupo sanguíneo:</span> <span id="p_sangre"></span></div>
+            <div class="info-row"><span class="label">Alergias:</span> <span id="p_alergias"></span></div>
+        </div>
+
+        <button class="back-btn" onclick="window.location.href='home.html'">← Volver</button>
+    </div>
+
+</div>
+
+<script>
+    function logout() {
+        localStorage.removeItem("ss_user");
+        localStorage.removeItem("ss_role");
+        window.location.href = "index.html";
+    }
+
+    function cargarPerfil() {
+        const params = new URLSearchParams(window.location.search);
+        const me = params.get("me");
+        const id = params.get("id");
+
+        let user = null;
+
+        const allUsers = JSON.parse(localStorage.getItem("ss_users")) || [];
+        const current = JSON.parse(localStorage.getItem("ss_user") || "{}");
+
+        // === PERFIL PROPIO (MEDICO O PACIENTE) ===
+        if (me === "true") {
+            user = current;
+        }
+        // === PERFIL DE PACIENTE DESDE LISTA ===
+        else {
+            user = allUsers.find(u => u.id == id);
+        }
+
+        if (!user) {
+            alert("No se encontró el usuario.");
+            window.location.href = "home.html";
+            return;
+        }
+
+        // ============================
+        // RENDERIZAR PERFIL
+        // ============================
+
+        document.getElementById("p_foto").src = user.foto || "assets/default-avatar.png";
+        document.getElementById("p_nombre").innerText = user.nombre || "Sin nombre";
+
+        // Tipo de usuario
+        if (user.type === "medic") {
+            document.getElementById("title").innerText = "Perfil del Médico";
+            document.getElementById("p_role").innerText = "Médico";
+
+            // Mostrar especialidad
+            document.getElementById("p_especialidad").style.display = "block";
+            document.getElementById("p_especialidad").innerText = "Especialidad: " + (user.specialty || "No registrada");
+
+            // Datos irrelevantes para médicos
+            document.getElementById("p_identificacion").innerText = user.id || "No registrada";
+            document.getElementById("p_fecha").innerText = "No aplica";
+            document.getElementById("p_telefono").innerText = user.contact || "No registrado";
+            document.getElementById("p_contactoEmerg").innerText = "No aplica";
+
+            // Oculta la sección de datos médicos del paciente
+            document.getElementById("section-medical").style.display = "none";
+        }
+
+        else {
+            // === PACIENTE ===
+            document.getElementById("title").innerText = "Perfil del Paciente";
+            document.getElementById("p_role").innerText = "Paciente";
+
+            document.getElementById("p_identificacion").innerText = user.identificacion || "No registrada";
+            document.getElementById("p_fecha").innerText = user.fecha || "No registrada";
+            document.getElementById("p_telefono").innerText = user.telefono || "No registrado";
+            document.getElementById("p_contactoEmerg").innerText = user.contactoEmerg || "No registrado";
+
+            document.getElementById("p_eps").innerText = user.eps || "No registrada";
+            document.getElementById("p_sangre").innerText = user.sangre || "No registrada";
+            document.getElementById("p_alergias").innerText = user.alergias || "No registradas";
+        }
+    }
+
+    window.onload = cargarPerfil;
+</script>
+
+</body>
+</html>

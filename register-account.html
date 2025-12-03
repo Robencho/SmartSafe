@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Médico - SaludSoft</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<header>
+    <div class="logo">SmartSafe</div>
+    <div class="menu" onclick="window.history.back()">← Volver</div>
+</header>
+
+<div class="container card">
+
+    <h2>Registrar Médico</h2>
+
+    <div class="form-group">
+        <label>Nombre completo</label>
+        <input id="m_name" placeholder="Ej: Dra. Catalina Gómez">
+    </div>
+
+    <div class="form-group">
+        <label>Especialidad</label>
+        <input id="m_specialty" placeholder="Ej: Pediatría, Medicina General...">
+    </div>
+
+    <div class="form-group">
+        <label>Contacto</label>
+        <input id="m_contact" placeholder="Teléfono o email">
+    </div>
+
+    <div class="form-group">
+        <label>Foto</label>
+        <input id="m_photo" type="file" accept="image/*">
+    </div>
+
+    <hr>
+
+    <h3>Datos de acceso</h3>
+
+    <div class="form-group">
+        <label>Usuario</label>
+        <input id="m_user" placeholder="Nombre de usuario">
+    </div>
+
+    <div class="form-group">
+        <label>Contraseña</label>
+        <input id="m_pass" type="password" placeholder="Contraseña">
+    </div>
+
+    <button onclick="crearMedico()">Registrar Médico</button>
+</div>
+
+<script>
+    function crearMedico() {
+
+        const name = document.getElementById("m_name").value.trim();
+        const specialty = document.getElementById("m_specialty").value.trim();
+        const contact = document.getElementById("m_contact").value.trim();
+        const username = document.getElementById("m_user").value.trim();
+        const pass = document.getElementById("m_pass").value.trim();
+        const photoInput = document.getElementById("m_photo").files[0];
+
+        if (!name || !specialty || !username || !pass) {
+            alert("Por favor completa todos los campos obligatorios.");
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+
+            const fotoBase64 = reader.result;
+
+            const newMedic = {
+                id: Date.now(),
+                type: "medic",   // Para diferenciar del paciente
+                role: "medic",
+
+                // Información principal
+                nombre: name,
+                specialty: specialty,
+                contact: contact,
+                foto: fotoBase64 || "assets/default-avatar.png",
+
+                // Login
+                user: username,
+                pass: pass
+            };
+
+            const users = JSON.parse(localStorage.getItem("ss_users")) || [];
+            users.push(newMedic);
+            localStorage.setItem("ss_users", JSON.stringify(users));
+
+            alert("Médico registrado correctamente.");
+            window.location.href = "home.html";
+        };
+
+        if (photoInput) reader.readAsDataURL(photoInput);
+        else reader.onloadend(); // continuar sin imagen
+    }
+</script>
+
+</body>
+</html>
