@@ -17,6 +17,7 @@ body {
 /* NAVBAR */
 header {
     background: white;
+    width: 100%;
     padding: 15px;
     display: flex;
     align-items: center;
@@ -289,12 +290,13 @@ button:hover {
 
 .form-group label {
     font-weight: 600;
+    text-align: left;
     margin-bottom: 6px;
     display: block;
 }
 
 .form-group input {
-    width: 100%;
+    width: 95%;
     padding: 12px;
     border-radius: 8px;
     border: 1px solid #ccc;
